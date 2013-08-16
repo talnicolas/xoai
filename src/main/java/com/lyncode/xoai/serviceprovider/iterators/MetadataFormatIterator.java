@@ -27,10 +27,12 @@ import java.util.Queue;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 
@@ -85,7 +87,13 @@ public class MetadataFormatIterator
         httpget.addHeader("From", HarvesterManager.FROM);
         
         HttpResponse response = null;
-        
+
+        if(System.getProperty("xoai.proxy.ip") != null && (System.getProperty("xoai.proxy.port")) != null)
+        {
+            HttpHost proxy = new HttpHost(System.getProperty("xoai.proxy.ip"), Integer.valueOf(System.getProperty("xoai.proxy.port")));
+            httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        }
+
         try
         {
             response = httpclient.execute(httpget);

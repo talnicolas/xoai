@@ -48,6 +48,8 @@ import com.lyncode.xoai.serviceprovider.verbs.ListRecords;
 import com.lyncode.xoai.serviceprovider.verbs.ListSets;
 import com.lyncode.xoai.serviceprovider.verbs.Parameters;
 
+import java.util.Properties;
+
 /**
  * This class works as a wrapper to provide an API with all OAI-PMH possible requests.
  * It is based upon the definition at: http://www.openarchives.org/OAI/openarchivesprotocol.html
@@ -66,6 +68,7 @@ public class HarvesterManager
     public static void main (String... args) {
     	//BasicConfigurator.configure();
     	HarvesterManager harvester = new HarvesterManager("http://demo.dspace.org/oai/request", log);
+        harvester.setProxy("127.0.0.1", "80");
     	ListRecords lr = harvester.listRecords("oai_dc");
     	ProcessingQueue<RecordType> results = lr.harvest(new OAIDCParser(log));
     	while (!results.hasFinished()) {
@@ -122,6 +125,13 @@ public class HarvesterManager
         this.baseUrl = baseUrl;
         this.intervalBetweenRequests = interval;
         this.logInstance = log;
+    }
+
+    public void setProxy (String ip, String port) {
+        Properties props = System.getProperties();
+        props.setProperty("xoai.proxy.ip", ip);
+        props.setProperty("xoai.proxy.port", port);
+        System.setProperties(props);
     }
     
     public int getIntervalBetweenRequests () {
