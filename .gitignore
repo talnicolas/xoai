@@ -4,6 +4,9 @@
 *.classpath
 *.settings
 
+*.iml
+.idea
+
 # Package Files #
 *.jar
 *.war

@@ -36,8 +36,12 @@ public class RetrieveListRecords implements Runnable {
 	private Parameters extra;
 	private GenericParser metadata;
 	private GenericParser about;
+    private String proxyIp;
+    private int proxyPort;
 	
-	public RetrieveListRecords(int interval, String baseUrl, String metadataPrefix, Parameters extra, ProcessingQueue<RecordType> list, Logger log, GenericParser met, GenericParser abt) {
+	public RetrieveListRecords(int interval, String baseUrl, String metadataPrefix, Parameters extra,
+                               ProcessingQueue<RecordType> list, String proxyIp, int proxyPort, Logger log,
+                               GenericParser met, GenericParser abt) {
 		this.queue = list;
 		this.log = log;
 		this.baseUrl = baseUrl;
@@ -46,6 +50,8 @@ public class RetrieveListRecords implements Runnable {
 		this.extra = extra;
 		this.metadata = met;
 		this.about = abt;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
 	}
 
     private String makeUrl (String resumption) {
@@ -97,12 +103,12 @@ public class RetrieveListRecords implements Runnable {
         
         HttpResponse response = null;
 
-        if(System.getProperty("xoai.proxy.ip") != null && (System.getProperty("xoai.proxy.port")) != null)
+        if(this.proxyIp != null && this.proxyPort > -1)
         {
-            HttpHost proxy = new HttpHost(System.getProperty("xoai.proxy.ip"), Integer.valueOf(System.getProperty("xoai.proxy.port")));
+            HttpHost proxy = new HttpHost(this.proxyIp, this.proxyPort);
             httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
         }
-        
+
         try
         {
             response = httpclient.execute(httpget);

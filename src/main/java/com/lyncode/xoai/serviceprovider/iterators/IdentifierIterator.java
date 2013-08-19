@@ -38,8 +38,11 @@ public class IdentifierIterator
     private String metadataPrefix;
     private Logger log;
     private Parameters extra;
+    private String proxyIp;
+    private int proxyPort;
 
-    public IdentifierIterator(int configuration, String baseUrl, String metadataPrefix, Parameters extra, Logger log)
+    public IdentifierIterator(int configuration, String baseUrl, String metadataPrefix, Parameters extra,
+                              String proxyIp, int proxyPort, Logger log)
     {
         super();
         this.config = configuration;
@@ -47,11 +50,14 @@ public class IdentifierIterator
         this.metadataPrefix = metadataPrefix;
         this.log = log;
         this.extra = extra;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
     }
     
     public ProcessingQueue<HeaderType> harvest () {
     	ProcessingQueue<HeaderType> list = new ProcessingQueue<HeaderType>();
-    	RetrieveListIdentifiers l = new RetrieveListIdentifiers(config, baseUrl, metadataPrefix, extra, list, log);
+    	RetrieveListIdentifiers l = new RetrieveListIdentifiers(config, baseUrl, metadataPrefix, extra, list,
+                this.proxyIp, this.proxyPort, log);
     	Thread t = new Thread(l);
     	t.start();
     	return list;

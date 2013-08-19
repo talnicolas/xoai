@@ -19,35 +19,22 @@
 
 package com.lyncode.xoai.serviceprovider;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import javax.xml.stream.XMLStreamReader;
-
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
 import com.lyncode.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
 import com.lyncode.xoai.serviceprovider.exceptions.IdDoesNotExistException;
 import com.lyncode.xoai.serviceprovider.exceptions.InternalHarvestException;
-import com.lyncode.xoai.serviceprovider.oaipmh.GenericParser;
-import com.lyncode.xoai.serviceprovider.oaipmh.NullParser;
-import com.lyncode.xoai.serviceprovider.oaipmh.ParseException;
 import com.lyncode.xoai.serviceprovider.oaipmh.oai_dc.OAIDCParser;
 import com.lyncode.xoai.serviceprovider.oaipmh.spec.RecordType;
 import com.lyncode.xoai.serviceprovider.oaipmh.spec.schemas.oai_dc.OAIDC;
 import com.lyncode.xoai.serviceprovider.util.ProcessingQueue;
-import com.lyncode.xoai.serviceprovider.verbs.GetRecord;
-import com.lyncode.xoai.serviceprovider.verbs.Identify;
-import com.lyncode.xoai.serviceprovider.verbs.ListIdentifiers;
-import com.lyncode.xoai.serviceprovider.verbs.ListMetadataFormats;
-import com.lyncode.xoai.serviceprovider.verbs.ListRecords;
-import com.lyncode.xoai.serviceprovider.verbs.ListSets;
-import com.lyncode.xoai.serviceprovider.verbs.Parameters;
+import com.lyncode.xoai.serviceprovider.verbs.*;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.util.Properties;
 
 /**
@@ -68,7 +55,7 @@ public class HarvesterManager
     public static void main (String... args) {
     	//BasicConfigurator.configure();
     	HarvesterManager harvester = new HarvesterManager("http://demo.dspace.org/oai/request", log);
-        harvester.setProxy("127.0.0.1", "80");
+
     	ListRecords lr = harvester.listRecords("oai_dc");
     	ProcessingQueue<RecordType> results = lr.harvest(new OAIDCParser(log));
     	while (!results.hasFinished()) {
@@ -114,6 +101,8 @@ public class HarvesterManager
     
     private String baseUrl;
     private int intervalBetweenRequests;
+    private String proxyIp = null;
+    private int proxyPort = -1;
     private Logger logInstance;
 
     public HarvesterManager (String baseUrl, Logger log) {
@@ -126,50 +115,62 @@ public class HarvesterManager
         this.intervalBetweenRequests = interval;
         this.logInstance = log;
     }
-
-    public void setProxy (String ip, String port) {
-        Properties props = System.getProperties();
-        props.setProperty("xoai.proxy.ip", ip);
-        props.setProperty("xoai.proxy.port", port);
-        System.setProperties(props);
+    public HarvesterManager (String baseUrl, String proxyIp, int proxyPort, Logger log) {
+        this.baseUrl = baseUrl;
+        this.intervalBetweenRequests = 1000;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
+        this.logInstance = log;
     }
-    
+    public HarvesterManager (String baseUrl, int interval, String proxyIp, int proxyPort, Logger log) {
+        this.baseUrl = baseUrl;
+        this.intervalBetweenRequests = interval;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
+        this.logInstance = log;
+    }
+
     public int getIntervalBetweenRequests () {
         return intervalBetweenRequests;
     }
 
     public ListRecords listRecords (String metadataPrefix) {
-        return new ListRecords(baseUrl, metadataPrefix, this.getIntervalBetweenRequests(), this.logInstance);
+        return new ListRecords(baseUrl, metadataPrefix, this.getIntervalBetweenRequests(), this.proxyIp, this.proxyPort,
+                this.logInstance);
     }
     
     public ListRecords listRecords (String metadataPrefix, Parameters extra) {
-        return new ListRecords(baseUrl, metadataPrefix, extra, this.getIntervalBetweenRequests(), this.logInstance);
+        return new ListRecords(baseUrl, metadataPrefix, extra, this.getIntervalBetweenRequests(), this.proxyIp,
+                this.proxyPort, this.logInstance);
     }
 
     public ListIdentifiers listIdentifiers (String metadataPrefix) {
-        return new ListIdentifiers(baseUrl, metadataPrefix, new Parameters(), this.getIntervalBetweenRequests(), this.logInstance);
+        return new ListIdentifiers(baseUrl, metadataPrefix, new Parameters(), this.getIntervalBetweenRequests(),
+                this.proxyIp, this.proxyPort, this.logInstance);
     }
     
     public ListIdentifiers listIdentifiers (String metadataPrefix, Parameters extra) {
-        return new ListIdentifiers(baseUrl, metadataPrefix, extra, this.getIntervalBetweenRequests(), this.logInstance);
+        return new ListIdentifiers(baseUrl, metadataPrefix, extra, this.getIntervalBetweenRequests(),
+                this.proxyIp, this.proxyPort, this.logInstance);
     }
     
     public ListMetadataFormats listMetadataFormats () {
-        return new ListMetadataFormats(baseUrl, this.logInstance);
+        return new ListMetadataFormats(baseUrl, this.proxyIp, this.proxyPort, this.logInstance);
     }
     public ListMetadataFormats listMetadataFormats (Parameters extra) {
-        return new ListMetadataFormats(baseUrl, extra, this.logInstance);
+        return new ListMetadataFormats(baseUrl, extra, this.proxyIp, this.proxyPort, this.logInstance);
     }
     
     public ListSets listSets () {
-        return new ListSets(baseUrl, this.getIntervalBetweenRequests(), this.logInstance);
+        return new ListSets(baseUrl, this.getIntervalBetweenRequests(), this.proxyIp, this.proxyPort, this.logInstance);
     }
     
-    public GetRecord getRecord (String identifier, String metadataPrefix) throws InternalHarvestException, BadArgumentException, CannotDisseminateFormatException, IdDoesNotExistException {
-        return new GetRecord(baseUrl, identifier, metadataPrefix, this.logInstance);
+    public GetRecord getRecord (String identifier, String metadataPrefix) throws InternalHarvestException,
+            BadArgumentException, CannotDisseminateFormatException, IdDoesNotExistException {
+        return new GetRecord(baseUrl, identifier, metadataPrefix, this.proxyIp, this.proxyPort, this.logInstance);
     }
     
     public Identify identify () throws InternalHarvestException, BadArgumentException {
-        return new Identify(baseUrl, this.logInstance);
+        return new Identify(baseUrl, this.proxyIp, this.proxyPort, this.logInstance);
     }
 }

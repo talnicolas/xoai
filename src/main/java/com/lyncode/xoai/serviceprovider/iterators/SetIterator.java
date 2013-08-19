@@ -35,21 +35,24 @@ public class SetIterator
     private Logger log;
     private int configure;
     private String baseUrl;
+    private String proxyIp;
+    private int proxyPort;
     
     
     
-    public SetIterator(String string, int interval, Logger log)
+    public SetIterator(String string, int interval, String proxyIp, int proxyPort, Logger log)
     {
         super();
         this.configure = interval;
         this.baseUrl = string;
         this.log = log;
-        
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
     }
     
     public ProcessingQueue<SetType> harvest () {
     	ProcessingQueue<SetType> list = new ProcessingQueue<SetType>();
-    	RetrieveListSets l = new RetrieveListSets(configure, baseUrl, list, log);
+    	RetrieveListSets l = new RetrieveListSets(configure, baseUrl, list, this.proxyIp, this.proxyPort, log);
     	Thread t = new Thread(l);
     	t.start();
     	return list;

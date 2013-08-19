@@ -32,14 +32,19 @@ public class RetrieveListIdentifiers implements Runnable {
 	private String metadataPrefix;
 	private int interval;
 	private Parameters extra;
-	
-	public RetrieveListIdentifiers(int interval, String baseUrl, String metadataPrefix, Parameters extra, ProcessingQueue<HeaderType> list, Logger log) {
+    private String proxyIp;
+    private int proxyPort;
+
+	public RetrieveListIdentifiers(int interval, String baseUrl, String metadataPrefix, Parameters extra,
+                                   ProcessingQueue<HeaderType> list, String proxyIp, int proxyPort, Logger log) {
 		this.queue = list;
 		this.log = log;
 		this.baseUrl = baseUrl;
 		this.metadataPrefix = metadataPrefix;
 		this.interval = interval;
 		this.extra = extra;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
 	}
 	
 
@@ -92,9 +97,9 @@ public class RetrieveListIdentifiers implements Runnable {
         
         HttpResponse response = null;
 
-        if(System.getProperty("xoai.proxy.ip") != null && (System.getProperty("xoai.proxy.port")) != null)
+        if(this.proxyIp != null && this.proxyPort > -1)
         {
-            HttpHost proxy = new HttpHost(System.getProperty("xoai.proxy.ip"), Integer.valueOf(System.getProperty("xoai.proxy.port")));
+            HttpHost proxy = new HttpHost(this.proxyIp, this.proxyPort);
             httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
         }
 

@@ -33,21 +33,28 @@ import com.lyncode.xoai.serviceprovider.oaipmh.spec.ListMetadataFormatsType;
 public class ListMetadataFormats extends AbstractVerb
 {
     private Parameters parameters;
+    private String proxyIp;
+    private int proxyPort;
 
-    public ListMetadataFormats(String baseUrl, Logger log)
+    public ListMetadataFormats(String baseUrl, String proxyIp, int proxyPort, Logger log)
     {
         super(baseUrl, log);
         parameters = null;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
     }
-    public ListMetadataFormats(String baseUrl, Parameters extra, Logger log)
+    public ListMetadataFormats(String baseUrl, Parameters extra, String proxyIp, int proxyPort, Logger log)
     {
         super(baseUrl, log);
         parameters = extra;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
     }
 
     public ListMetadataFormatsType harvest() throws InternalHarvestException
     {
-        return (new MetadataFormatIterator(super.getBaseUrl(), parameters, getLogger())).harvest();
+        return (new MetadataFormatIterator(super.getBaseUrl(), parameters, this.proxyIp, this.proxyPort,
+                getLogger())).harvest();
     }
 
 }

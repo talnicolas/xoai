@@ -35,18 +35,24 @@ public class ListIdentifiers extends AbstractVerb
     private String metadataPrefix;
     private int interval;
     private Parameters extra;
+    private String proxyIp;
+    private int proxyPort;
     
-    public ListIdentifiers(String baseUrl, String metadataPrefix, Parameters extra, int interval, Logger log)
+    public ListIdentifiers(String baseUrl, String metadataPrefix, Parameters extra, int interval,
+                           String proxyIp, int proxyPort, Logger log)
     {
         super(baseUrl, log);
         this.metadataPrefix = metadataPrefix;
         this.interval = interval;
         this.extra = extra;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
     }
 
 
 	public ProcessingQueue<HeaderType> harvest()
     {
-        return (new IdentifierIterator(this.interval, super.getBaseUrl(), metadataPrefix, this.extra, getLogger())).harvest();
+        return (new IdentifierIterator(this.interval, super.getBaseUrl(), metadataPrefix, this.extra, this.proxyIp,
+                this.proxyPort, getLogger())).harvest();
     }
 }

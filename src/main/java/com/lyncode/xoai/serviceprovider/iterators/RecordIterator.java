@@ -41,9 +41,11 @@ public class RecordIterator
     private Parameters extra;
     private GenericParser met;
     private GenericParser abt;
+    private String proxyIp = null;
+    private int proxyPort;
 
     public RecordIterator(int interval, String baseUrl, String metadataPrefix,
-    		Parameters extra, Logger log, GenericParser metadata)
+    		Parameters extra, String proxyIp, int proxyPort, Logger log, GenericParser metadata)
     {
         super();
         this.config = interval;
@@ -53,9 +55,11 @@ public class RecordIterator
         this.log = log;
         this.met = metadata;
         this.abt = null;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
     }
     public RecordIterator(int interval, String baseUrl, String metadataPrefix,
-    		Parameters extra, Logger log, GenericParser metadata, GenericParser about)
+    		Parameters extra, String proxyIp, int proxyPort, Logger log, GenericParser metadata, GenericParser about)
     {
         super();
         this.config = interval;
@@ -65,11 +69,14 @@ public class RecordIterator
         this.log = log;
         this.met = metadata;
         this.abt = about;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
     }
 
     public ProcessingQueue<RecordType> harvest () {
     	ProcessingQueue<RecordType> list = new ProcessingQueue<RecordType>();
-    	RetrieveListRecords l = new RetrieveListRecords(config, baseUrl, metadataPrefix, extra, list, log, this.met, this.abt);
+    	RetrieveListRecords l = new RetrieveListRecords(config, baseUrl, metadataPrefix, extra, list, this.proxyIp,
+                this.proxyPort, log, this.met, this.abt);
     	Thread t = new Thread(l);
     	t.start();
     	return list;

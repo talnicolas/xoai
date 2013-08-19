@@ -37,30 +37,40 @@ public class ListRecords extends AbstractVerb
     private String metadataPrefix;
     private Parameters extra;
     private int interval;
+    private String proxyIp;
+    private int proxyPort;
     
-    public ListRecords(String baseUrl, String metadataPrefix, int interval, Logger log)
+    public ListRecords(String baseUrl, String metadataPrefix, int interval, String proxyIp, int proxyPort,
+                       Logger log)
     {
         super(baseUrl, log);
         this.metadataPrefix = metadataPrefix;
         this.extra = null;
         this.interval = interval;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
     }
     
 
-    public ListRecords(String baseUrl, String metadataPrefix, Parameters extra, int interval, Logger log)
+    public ListRecords(String baseUrl, String metadataPrefix, Parameters extra, int interval, String proxyIp,
+                       int proxyPort, Logger log)
     {
         super(baseUrl, log);
         this.metadataPrefix = metadataPrefix;
         this.extra = extra;
         this.interval = interval;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
     }
 
     public ProcessingQueue<RecordType> harvest(GenericParser metadata)
     {
-        return (new RecordIterator(this.interval, super.getBaseUrl(), metadataPrefix, extra, getLogger(), metadata)).harvest();
+        return (new RecordIterator(this.interval, super.getBaseUrl(), metadataPrefix, extra, this.proxyIp,
+                this.proxyPort, getLogger(), metadata)).harvest();
     }
     public ProcessingQueue<RecordType> harvest(GenericParser metadata, GenericParser about)
     {
-        return (new RecordIterator(this.interval, super.getBaseUrl(), metadataPrefix, extra, getLogger(), metadata, about)).harvest();
+        return (new RecordIterator(this.interval, super.getBaseUrl(), metadataPrefix, extra, this.proxyIp,
+                this.proxyPort, getLogger(), metadata, about)).harvest();
     }
 }

@@ -51,9 +51,14 @@ import com.lyncode.xoai.serviceprovider.oaipmh.spec.OAIPMHtype;
  */
 public class Identify extends AbstractVerb
 {
-	public Identify(String baseUrl, Logger log) throws InternalHarvestException, BadArgumentException
+    private String proxyIp;
+    private int proxyPort;
+
+	public Identify(String baseUrl, String proxyIp, int proxyPort, Logger log) throws InternalHarvestException, BadArgumentException
     {
         super(baseUrl, log);
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
     }
     
 
@@ -71,9 +76,9 @@ public class Identify extends AbstractVerb
         
         HttpResponse response = null;
 
-        if(System.getProperty("xoai.proxy.ip") != null && (System.getProperty("xoai.proxy.port")) != null)
+        if(this.proxyIp != null && this.proxyPort > -1)
         {
-            HttpHost proxy = new HttpHost(System.getProperty("xoai.proxy.ip"), Integer.valueOf(System.getProperty("xoai.proxy.port")));
+            HttpHost proxy = new HttpHost(this.proxyIp, this.proxyPort);
             httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
         }
 

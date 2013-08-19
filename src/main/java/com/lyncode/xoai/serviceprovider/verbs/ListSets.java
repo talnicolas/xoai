@@ -33,16 +33,20 @@ import com.lyncode.xoai.serviceprovider.util.ProcessingQueue;
 public class ListSets extends AbstractVerb
 {
 	private int interval;
+    private String proxyIp;
+    private int proxyPort;
 	
-    public ListSets(String baseUrl, int interval, Logger log)
+    public ListSets(String baseUrl, int interval, String proxyIp, int proxyPort, Logger log)
     {
         super(baseUrl, log);
         this.interval = interval;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
     }
 
     public ProcessingQueue<SetType> harvest()
     {
-        return new SetIterator(getBaseUrl(), interval, getLogger()).harvest();
+        return new SetIterator(getBaseUrl(), interval, this.proxyIp, this.proxyPort, getLogger()).harvest();
     }
 
 }

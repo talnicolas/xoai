@@ -29,12 +29,17 @@ public class RetrieveListSets implements Runnable {
 	private Logger log;
 	private String baseUrl;
 	private int interval;
+    private String proxyIp;
+    private int proxyPort;
 	
-	public RetrieveListSets(int interval, String baseUrl, ProcessingQueue<SetType> list, Logger log) {
+	public RetrieveListSets(int interval, String baseUrl, ProcessingQueue<SetType> list, String proxyIp,
+                            int proxyPort, Logger log) {
 		this.queue = list;
 		this.log = log;
 		this.baseUrl = baseUrl;
 		this.interval = interval;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
 	}
 
     private String makeUrl (String resumption) {
@@ -85,9 +90,9 @@ public class RetrieveListSets implements Runnable {
         
         HttpResponse response = null;
 
-        if(System.getProperty("xoai.proxy.ip") != null && (System.getProperty("xoai.proxy.port")) != null)
+        if(this.proxyIp != null && this.proxyPort > -1)
         {
-            HttpHost proxy = new HttpHost(System.getProperty("xoai.proxy.ip"), Integer.valueOf(System.getProperty("xoai.proxy.port")));
+            HttpHost proxy = new HttpHost(this.proxyIp, this.proxyPort);
             httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
         }
 

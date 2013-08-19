@@ -58,13 +58,17 @@ public class MetadataFormatIterator
     private Logger log;
     private String baseUrl;
     private Parameters extra;
+    private String proxyIp;
+    private int proxyPort;
 
-    public MetadataFormatIterator(String baseUrl, Parameters extra, Logger logger)
+    public MetadataFormatIterator(String baseUrl, Parameters extra, String proxyIp, int proxyPort, Logger logger)
     {
         super();
         this.baseUrl = baseUrl;
         this.extra = extra;
         this.log = logger;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
     }
 
 
@@ -88,9 +92,9 @@ public class MetadataFormatIterator
         
         HttpResponse response = null;
 
-        if(System.getProperty("xoai.proxy.ip") != null && (System.getProperty("xoai.proxy.port")) != null)
+        if(this.proxyIp != null && this.proxyPort > -1)
         {
-            HttpHost proxy = new HttpHost(System.getProperty("xoai.proxy.ip"), Integer.valueOf(System.getProperty("xoai.proxy.port")));
+            HttpHost proxy = new HttpHost(this.proxyIp, this.proxyPort);
             httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
         }
 
