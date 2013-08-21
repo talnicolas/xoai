@@ -68,7 +68,7 @@ public class XOAIManager {
 		_listSetsSize = config.getMaxListSetsSize();
 		_listIdentifiersSize = config.getMaxListRecordsSize();
 		_listRecordsSize = config.getMaxListRecordsSize();
-		_identation = config.isIndentation();
+		_identation = config.isIdentation();
 		styleSheet = config.getStylesheet();
 		_context = new ContextManager(config.getContexts(), _filter,
 				_transformer, _format, _set);
@@ -114,7 +114,7 @@ public class XOAIManager {
 		return _listSetsSize;
 	}
 
-	public boolean isIndentated() {
+	public boolean isIdentated() {
 		return _identation;
 	}
 

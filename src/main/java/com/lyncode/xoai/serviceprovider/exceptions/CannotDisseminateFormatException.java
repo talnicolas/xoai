@@ -2,11 +2,6 @@ package com.lyncode.xoai.serviceprovider.exceptions;
 
 public class CannotDisseminateFormatException extends HarvestException {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4365928393912692884L;
-
 	public CannotDisseminateFormatException() {
 	}
 

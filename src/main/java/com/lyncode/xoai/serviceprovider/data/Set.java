@@ -17,27 +17,37 @@
  * @version 2.2.9
  */
 
-package com.lyncode.xoai.serviceprovider.verbs;
+package com.lyncode.xoai.serviceprovider.data;
 
-import com.lyncode.xoai.serviceprovider.configuration.Configuration;
-import com.lyncode.xoai.serviceprovider.iterators.SetIterator;
 
 /**
  * @author Development @ Lyncode <development@lyncode.com>
  * @version 2.2.9
  */
-
-public class ListSets extends AbstractVerb
+public class Set
 {
+    private String setSpec;
 
-    public ListSets(Configuration config, String baseUrl)
+    public String getSetSpec()
     {
-        super(config, baseUrl);
+        return setSpec;
     }
 
-    public SetIterator iterator()
+    public void setSetSpec(String setSpec)
     {
-        return new SetIterator(super.getConfiguration(), super.getBaseUrl());
+        this.setSpec = setSpec;
     }
+
+    public String getSetName()
+    {
+        return setName;
+    }
+
+    public void setSetName(String setName)
+    {
+        this.setName = setName;
+    }
+
+    private String setName;
 
 }

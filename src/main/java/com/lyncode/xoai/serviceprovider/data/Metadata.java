@@ -17,27 +17,27 @@
  * @version 2.2.9
  */
 
-package com.lyncode.xoai.serviceprovider.verbs;
 
-import com.lyncode.xoai.serviceprovider.configuration.Configuration;
-import com.lyncode.xoai.serviceprovider.iterators.SetIterator;
+package com.lyncode.xoai.serviceprovider.data;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.Serializable;
+
 
 /**
  * @author Development @ Lyncode <development@lyncode.com>
  * @version 2.2.9
  */
-
-public class ListSets extends AbstractVerb
-{
-
-    public ListSets(Configuration config, String baseUrl)
-    {
-        super(config, baseUrl);
+public class Metadata implements Serializable {
+    private static final long serialVersionUID = 638219179011570764L;
+    private String value;
+    
+    public Metadata (String value) {
+        this.value = value;
     }
-
-    public SetIterator iterator()
-    {
-        return new SetIterator(super.getConfiguration(), super.getBaseUrl());
+    
+    public InputStream getMetadata () {
+        return new ByteArrayInputStream(this.value.getBytes());
     }
-
 }

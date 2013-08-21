@@ -19,11 +19,14 @@
 
 package com.lyncode.xoai.serviceprovider.verbs;
 
-import org.apache.log4j.Logger;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.lyncode.xoai.serviceprovider.exceptions.InternalHarvestException;
+import org.apache.commons.lang3.StringUtils;
+
+import com.lyncode.xoai.serviceprovider.configuration.Configuration;
 import com.lyncode.xoai.serviceprovider.iterators.MetadataFormatIterator;
-import com.lyncode.xoai.serviceprovider.oaipmh.spec.ListMetadataFormatsType;
+import com.lyncode.xoai.serviceprovider.util.URLEncoder;
 
 
 /**
@@ -32,29 +35,53 @@ import com.lyncode.xoai.serviceprovider.oaipmh.spec.ListMetadataFormatsType;
  */
 public class ListMetadataFormats extends AbstractVerb
 {
-    private Parameters parameters;
-    private String proxyIp;
-    private int proxyPort;
+    private ExtraParameters parameters;
 
-    public ListMetadataFormats(String baseUrl, String proxyIp, int proxyPort, Logger log)
+    public ListMetadataFormats(Configuration config, String baseUrl)
     {
-        super(baseUrl, log);
+        super(config, baseUrl);
         parameters = null;
-        this.proxyIp = proxyIp;
-        this.proxyPort = proxyPort;
     }
-    public ListMetadataFormats(String baseUrl, Parameters extra, String proxyIp, int proxyPort, Logger log)
+    public ListMetadataFormats(Configuration config, String baseUrl, ExtraParameters extra)
     {
-        super(baseUrl, log);
+        super(config, baseUrl);
         parameters = extra;
-        this.proxyIp = proxyIp;
-        this.proxyPort = proxyPort;
     }
 
-    public ListMetadataFormatsType harvest() throws InternalHarvestException
+    public MetadataFormatIterator iterator()
     {
-        return (new MetadataFormatIterator(super.getBaseUrl(), parameters, this.proxyIp, this.proxyPort,
-                getLogger())).harvest();
+        return new MetadataFormatIterator(super.getConfiguration(), super.getBaseUrl(), parameters);
     }
 
+
+    public class ExtraParameters {
+        private String identifier;
+        
+        public ExtraParameters()
+        {
+            super();
+        }
+        
+        
+        
+        public String getIdentifier()
+        {
+            return identifier;
+        }
+
+
+
+        public void setIdentifier(String identifier)
+        {
+            this.identifier = identifier;
+        }
+
+
+
+        public String toUrl () {
+            List<String> string = new ArrayList<String>();
+            if (identifier != null) string.add("set="+URLEncoder.encode(identifier));
+            return StringUtils.join(string, URLEncoder.SEPARATOR);
+        }
+    }
 }

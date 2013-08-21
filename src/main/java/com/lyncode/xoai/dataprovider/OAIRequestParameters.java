@@ -40,31 +40,31 @@ public class OAIRequestParameters {
 		this.checkedArgs = false;
 	}
 
-	public String getFrom() throws DuplicateDefinitionException, UnknownParameterException, IllegalVerbException {
+	public String getFrom() throws DuplicateDefinitionException, UnknownParameterException {
 		return this.getParameter("from");
 	}
 
-	public String getIdentifier() throws DuplicateDefinitionException, UnknownParameterException, IllegalVerbException {
+	public String getIdentifier() throws DuplicateDefinitionException, UnknownParameterException {
 		return this.getParameter("identifier");
 	}
 
-	public String getMetadataPrefix() throws DuplicateDefinitionException, UnknownParameterException, IllegalVerbException {
+	public String getMetadataPrefix() throws DuplicateDefinitionException, UnknownParameterException {
 		return this.getParameter("metadataPrefix");
 	}
 
-	public String getResumptionToken() throws DuplicateDefinitionException, UnknownParameterException, IllegalVerbException {
+	public String getResumptionToken() throws DuplicateDefinitionException, UnknownParameterException {
 		return this.getParameter("resumptionToken");
 	}
 
-	public String getSet() throws DuplicateDefinitionException, UnknownParameterException, IllegalVerbException {
+	public String getSet() throws DuplicateDefinitionException, UnknownParameterException {
 		return this.getParameter("set");
 	}
 
-	public String getUntil() throws DuplicateDefinitionException, UnknownParameterException, IllegalVerbException {
+	public String getUntil() throws DuplicateDefinitionException, UnknownParameterException {
 		return this.getParameter("until");
 	}
 
-	public String getVerb() throws IllegalVerbException, UnknownParameterException, IllegalVerbException {
+	public String getVerb() throws IllegalVerbException, UnknownParameterException {
 		try {
 			return this.getParameter("verb");
 		} catch (DuplicateDefinitionException e) {
@@ -72,7 +72,7 @@ public class OAIRequestParameters {
 		}
 	}
 
-	private String getParameter (String parameter) throws DuplicateDefinitionException, UnknownParameterException, IllegalVerbException {
+	private String getParameter (String parameter) throws DuplicateDefinitionException, UnknownParameterException {
 		if (!checkedArgs) {
 			onlyHasKnownParameters();
 			this.checkedArgs = true;
@@ -112,8 +112,6 @@ public class OAIRequestParameters {
 			onlyHasKnownParameters();
 		} catch (UnknownParameterException e) {
 			pre = "extra##";
-		} catch (IllegalVerbException e) {
-			pre = "badverb##";
 		}
 		return pre + this.getParameterID("verb") + this.getParameterID("metadataPrefix")
         + this.getParameterID("identifier")
@@ -122,7 +120,7 @@ public class OAIRequestParameters {
 	}
 	
 	
-	public void onlyHasKnownParameters () throws UnknownParameterException, IllegalVerbException  {
+	public void onlyHasKnownParameters () throws UnknownParameterException  {
 		List<String> possibilities = new ArrayList<String>();
 		possibilities.add("verb");
 		possibilities.add("from");
@@ -131,9 +129,6 @@ public class OAIRequestParameters {
 		possibilities.add("identifier");
 		possibilities.add("metadataPrefix");
 		possibilities.add("resumptionToken");
-		
-		if (!this.map.containsKey("verb"))
-			throw new IllegalVerbException();
 		
 		for (String parameter : this.map.keySet())
 			if (!possibilities.contains(parameter))

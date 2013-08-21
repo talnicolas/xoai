@@ -2,11 +2,6 @@ package com.lyncode.xoai.serviceprovider.exceptions;
 
 public class NoRecordsMatchException extends HarvestException {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4301316258437125256L;
-
 	public NoRecordsMatchException() {
 	}
 

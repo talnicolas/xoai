@@ -2,11 +2,6 @@ package com.lyncode.xoai.serviceprovider.exceptions;
 
 public class BadResumptionTokenException extends HarvestException {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -3469091780879436035L;
-
 	public BadResumptionTokenException() {
 	}
 

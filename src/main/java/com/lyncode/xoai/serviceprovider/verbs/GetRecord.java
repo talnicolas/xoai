@@ -22,28 +22,29 @@ package com.lyncode.xoai.serviceprovider.verbs;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.xml.stream.XMLStreamException;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import com.lyncode.xoai.serviceprovider.HarvesterManager;
-import com.lyncode.xoai.serviceprovider.core.HarvestURL;
+import com.lyncode.xoai.serviceprovider.configuration.Configuration;
+import com.lyncode.xoai.serviceprovider.data.Header;
+import com.lyncode.xoai.serviceprovider.data.Metadata;
 import com.lyncode.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
 import com.lyncode.xoai.serviceprovider.exceptions.IdDoesNotExistException;
 import com.lyncode.xoai.serviceprovider.exceptions.InternalHarvestException;
-import com.lyncode.xoai.serviceprovider.oaipmh.GenericParser;
-import com.lyncode.xoai.serviceprovider.oaipmh.OAIPMHParser;
-import com.lyncode.xoai.serviceprovider.oaipmh.ParseException;
-import com.lyncode.xoai.serviceprovider.oaipmh.spec.GetRecordType;
-import com.lyncode.xoai.serviceprovider.oaipmh.spec.OAIPMHtype;
+import com.lyncode.xoai.serviceprovider.util.URLEncoder;
+import com.lyncode.xoai.serviceprovider.util.XMLUtils;
 
 
 /**
@@ -52,51 +53,43 @@ import com.lyncode.xoai.serviceprovider.oaipmh.spec.OAIPMHtype;
  */
 public class GetRecord extends AbstractVerb
 {
+    private static Logger log = LogManager.getLogger(GetRecord.class);
     private String identifier;
     private String metadataPrefix;
-    private String proxyIp;
-    private int proxyPort;
     
-    public GetRecord(String baseUrl, String identifier, String metadataPrefix, String proxyIp, int proxyPort,
-                     Logger log) throws InternalHarvestException, CannotDisseminateFormatException,
-            IdDoesNotExistException
+    private Header header;
+    private Metadata metadata;
+    
+    public GetRecord(Configuration config, String baseUrl, String identifier, String metadataPrefix) throws InternalHarvestException, CannotDisseminateFormatException, IdDoesNotExistException
     {
-        super(baseUrl, log);
+        super(config, baseUrl);
         this.identifier = identifier;
         this.metadataPrefix = metadataPrefix;
-        this.proxyIp = proxyIp;
-        this.proxyPort = proxyPort;
+        harvest();
     }
+    
     
     
     private String makeUrl () {
-    	return HarvestURL.getRecord(metadataPrefix, identifier).toURL(super.getBaseUrl());
+        return (super.getBaseUrl() + "?verb=GetRecord" + URLEncoder.SEPARATOR + "metadataPrefix="+metadataPrefix + URLEncoder.SEPARATOR + "identifier=" + identifier);
     }
     
-    public GetRecordType harvest (GenericParser metadata, GenericParser about) throws InternalHarvestException,
-            CannotDisseminateFormatException, IdDoesNotExistException {
+    private void harvest () throws InternalHarvestException, CannotDisseminateFormatException, IdDoesNotExistException {
         HttpClient httpclient = new DefaultHttpClient();
         String url = makeUrl();
-        getLogger().debug("Harvesting: "+url);
+        log.info("Harvesting: "+url);
         HttpGet httpget = new HttpGet(url);
         httpget.addHeader("User-Agent", HarvesterManager.USERAGENT);
         httpget.addHeader("From", HarvesterManager.FROM);
         
         HttpResponse response = null;
-
-
-        if(this.proxyIp != null && this.proxyPort > -1)
-        {
-            HttpHost proxy = new HttpHost(this.proxyIp, this.proxyPort);
-            httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-        }
-
+        
         try
         {
             response = httpclient.execute(httpget);
             StatusLine status = response.getStatusLine();
             
-            getLogger().debug(response.getStatusLine());
+            log.debug(response.getStatusLine());
             
             if(status.getStatusCode() == 503) // 503 Status (must wait)
             {
@@ -107,9 +100,9 @@ public class GetRecord extends AbstractVerb
                         try {
 							Thread.sleep(Integer.parseInt(retry_time)*1000);
 						} catch (NumberFormatException e) {
-							getLogger().warn("Cannot parse "+retry_time+" to Integer", e);
+							log.warn("Cannot parse "+retry_time+" to Integer", e);
 						} catch (InterruptedException e) {
-							getLogger().debug(e.getMessage(), e);
+							log.debug(e.getMessage(), e);
 						}
                         httpclient.getConnectionManager().shutdown();
                         httpclient = new DefaultHttpClient();
@@ -121,20 +114,48 @@ public class GetRecord extends AbstractVerb
             HttpEntity entity = response.getEntity();
             InputStream instream = entity.getContent();
             
-            OAIPMHParser parser = OAIPMHParser.newInstance(instream, getLogger(), metadata, null, about);
-            OAIPMHtype pmh = parser.parse();
+            Document doc = XMLUtils.parseDocument(instream);
             
-            return pmh.getGetRecord();
+            XMLUtils.checkGetRecord(doc);
+            
+            NodeList listRecords = doc.getElementsByTagName("record");
+            for (int j = 0;j<listRecords.getLength();j++) {
+                NodeList list = listRecords.item(j).getChildNodes();
+                for (int i=0;i<list.getLength();i++) {
+                    if (list.item(i).getNodeName().toLowerCase().equals("header")) {
+                        this.setHeader(XMLUtils.getHeader(list.item(i).getChildNodes()));
+                    } else if (list.item(i).getNodeName().toLowerCase().equals("metadata")) {
+                        this.setMetadata(XMLUtils.getMetadata(list.item(i).getChildNodes()));
+                    }
+                }
+            }
         }
         catch (IOException e)
         {
             throw new InternalHarvestException(e);
-        } catch (XMLStreamException e) {
-        	throw new InternalHarvestException(e);
-		} catch (ParseException e) {
-			throw new InternalHarvestException(e);
+        } catch (ParserConfigurationException e) {
+            throw new InternalHarvestException(e);
+		} catch (SAXException e) {
+            throw new InternalHarvestException(e);
 		}
         
     }
     
+    
+    public Header getHeader() {
+        return header;
+    }
+    private void setHeader(Header header) {
+        this.header = header;
+    }
+    public Metadata getMetadata() {
+        return metadata;
+    }
+    private void setMetadata(Metadata metadata) {
+        this.metadata = metadata;
+    }
+    
+    public boolean hasMetadata () {
+        return (this.metadata != null);
+    }
 }

@@ -17,27 +17,30 @@
  * @version 2.2.9
  */
 
-package com.lyncode.xoai.serviceprovider.verbs;
 
-import com.lyncode.xoai.serviceprovider.configuration.Configuration;
-import com.lyncode.xoai.serviceprovider.iterators.SetIterator;
+package com.lyncode.xoai.serviceprovider.data;
+
 
 /**
  * @author Development @ Lyncode <development@lyncode.com>
  * @version 2.2.9
  */
+public class Record extends Identifier {
 
-public class ListSets extends AbstractVerb
-{
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 3482025864486977541L;
+	private Metadata metadata;
 
-    public ListSets(Configuration config, String baseUrl)
-    {
-        super(config, baseUrl);
-    }
-
-    public SetIterator iterator()
-    {
-        return new SetIterator(super.getConfiguration(), super.getBaseUrl());
-    }
-
+	public Metadata getMetadata() {
+		return metadata;
+	}
+	public void setMetadata(Metadata metadata) {
+		this.metadata = metadata;
+	}
+	
+	public boolean hasMetadata () {
+	    return (this.metadata != null);
+	}
 }

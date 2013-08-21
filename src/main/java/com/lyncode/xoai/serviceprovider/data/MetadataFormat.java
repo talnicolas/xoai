@@ -17,27 +17,48 @@
  * @version 2.2.9
  */
 
-package com.lyncode.xoai.serviceprovider.verbs;
+package com.lyncode.xoai.serviceprovider.data;
 
-import com.lyncode.xoai.serviceprovider.configuration.Configuration;
-import com.lyncode.xoai.serviceprovider.iterators.SetIterator;
 
 /**
  * @author Development @ Lyncode <development@lyncode.com>
  * @version 2.2.9
  */
-
-public class ListSets extends AbstractVerb
+public class MetadataFormat
 {
+    private String metadataPrefix;
 
-    public ListSets(Configuration config, String baseUrl)
+    private String schema;
+
+    private String metadataNamespace;
+
+    public String getMetadataPrefix()
     {
-        super(config, baseUrl);
+        return metadataPrefix;
     }
 
-    public SetIterator iterator()
+    public void setMetadataPrefix(String metadataPrefix)
     {
-        return new SetIterator(super.getConfiguration(), super.getBaseUrl());
+        this.metadataPrefix = metadataPrefix;
     }
 
+    public String getSchema()
+    {
+        return schema;
+    }
+
+    public void setSchema(String schema)
+    {
+        this.schema = schema;
+    }
+
+    public String getMetadataNamespace()
+    {
+        return metadataNamespace;
+    }
+
+    public void setMetadataNamespace(String metadataNamespace)
+    {
+        this.metadataNamespace = metadataNamespace;
+    }
 }

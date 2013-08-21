@@ -19,7 +19,6 @@ package com.lyncode.xoai.dataprovider.core;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -45,7 +44,7 @@ public class OAIParameters {
 	private String set;
 	private Date until;
 	private Date from;
-	
+
 	public OAIParameters(OAIRequestParameters request)
 			throws IllegalVerbException, BadArgumentException,
 			BadResumptionToken, UnknownParameterException, DuplicateDefinitionException {
@@ -135,13 +134,11 @@ public class OAIParameters {
 		SimpleDateFormat formatDate = new SimpleDateFormat(
 				"yyyy-MM-dd'T'HH:mm:ss'Z'");
 		try {
-			formatDate.setTimeZone(TimeZone.getTimeZone("UTC")); // Z means ZULU = UTC
 			return formatDate.parse(date);
 		} catch (ParseException ex) {
 			formatDate = new SimpleDateFormat(
 					"yyyy-MM-dd");
 			try {
-				formatDate.setTimeZone(TimeZone.getTimeZone("UTC")); // Z means ZULU = UTC
 				return formatDate.parse(date);
 			} catch (ParseException ex1) {
 				throw new BadArgumentException("The " + param

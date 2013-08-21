@@ -24,29 +24,29 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import javax.xml.stream.XMLStreamException;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import com.lyncode.xoai.serviceprovider.HarvesterManager;
+import com.lyncode.xoai.serviceprovider.configuration.Configuration;
+import com.lyncode.xoai.serviceprovider.data.MetadataFormat;
 import com.lyncode.xoai.serviceprovider.exceptions.IdDoesNotExistException;
 import com.lyncode.xoai.serviceprovider.exceptions.InternalHarvestException;
 import com.lyncode.xoai.serviceprovider.exceptions.NoMetadataFormatsException;
-import com.lyncode.xoai.serviceprovider.oaipmh.OAIPMHParser;
-import com.lyncode.xoai.serviceprovider.oaipmh.ParseException;
-import com.lyncode.xoai.serviceprovider.oaipmh.spec.ListMetadataFormatsType;
-import com.lyncode.xoai.serviceprovider.oaipmh.spec.MetadataFormatType;
-import com.lyncode.xoai.serviceprovider.oaipmh.spec.OAIPMHtype;
 import com.lyncode.xoai.serviceprovider.util.URLEncoder;
-import com.lyncode.xoai.serviceprovider.verbs.Parameters;
+import com.lyncode.xoai.serviceprovider.util.XMLUtils;
+import com.lyncode.xoai.serviceprovider.verbs.ListMetadataFormats.ExtraParameters;
 
 
 /**
@@ -55,24 +55,22 @@ import com.lyncode.xoai.serviceprovider.verbs.Parameters;
  */
 public class MetadataFormatIterator
 {
-    private Logger log;
+    private static Logger log = LogManager.getLogger(MetadataFormatIterator.class);
+    
+    private Configuration config;
     private String baseUrl;
-    private Parameters extra;
-    private String proxyIp;
-    private int proxyPort;
+    private ExtraParameters extra;
 
-    public MetadataFormatIterator(String baseUrl, Parameters extra, String proxyIp, int proxyPort, Logger logger)
+    public MetadataFormatIterator(Configuration configuration, String baseUrl, ExtraParameters extra)
     {
         super();
+        this.config = configuration;
         this.baseUrl = baseUrl;
         this.extra = extra;
-        this.log = logger;
-        this.proxyIp = proxyIp;
-        this.proxyPort = proxyPort;
     }
 
 
-    private Queue<MetadataFormatType> _queue = null;
+    private Queue<MetadataFormat> _queue = null;
     
     private String makeUrl () {
         if (extra == null || extra.equals(""))
@@ -82,7 +80,7 @@ public class MetadataFormatIterator
         
     }
     
-    public ListMetadataFormatsType harvest () throws InternalHarvestException {
+    private void harvest () throws InternalHarvestException, NoMetadataFormatsException, IdDoesNotExistException {
         HttpClient httpclient = new DefaultHttpClient();
         String url = makeUrl();
         log.info("Harvesting: "+url);
@@ -91,13 +89,7 @@ public class MetadataFormatIterator
         httpget.addHeader("From", HarvesterManager.FROM);
         
         HttpResponse response = null;
-
-        if(this.proxyIp != null && this.proxyPort > -1)
-        {
-            HttpHost proxy = new HttpHost(this.proxyIp, this.proxyPort);
-            httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-        }
-
+        
         try
         {
             response = httpclient.execute(httpget);
@@ -128,36 +120,38 @@ public class MetadataFormatIterator
             HttpEntity entity = response.getEntity();
             InputStream instream = entity.getContent();
             
-            OAIPMHParser parser = OAIPMHParser.newInstance(instream, log);
-            OAIPMHtype res = parser.parse();
+            Document doc = XMLUtils.parseDocument(instream);
             
-            return res.getListMetadataFormats();
+            XMLUtils.checkListMetadataFormats(doc);
+            
+            
+            NodeList listRecords = doc.getElementsByTagName("metadataFormat");
+            for (int i = 0;i<listRecords.getLength();i++)
+                _queue.add(XMLUtils.getMetadataFormat(listRecords.item(i)));
+            
         }
         catch (IOException e)
         {
             throw new InternalHarvestException(e);
-        } catch (XMLStreamException e) 
-        {
+        } catch (ParserConfigurationException e) {
             throw new InternalHarvestException(e);
-        } 
-        catch (ParseException e)
-        {
+		} catch (SAXException e) {
             throw new InternalHarvestException(e);
-        } 
+		}
         
     }
     
     public boolean hasNext() throws NoMetadataFormatsException, IdDoesNotExistException, InternalHarvestException
     {
         if (_queue == null) {
-            if (_queue == null) _queue = new LinkedList<MetadataFormatType>();
+            if (_queue == null) _queue = new LinkedList<MetadataFormat>();
             this.harvest();
         }
         
         return (_queue.size() > 0);
     }
 
-    public MetadataFormatType next()
+    public MetadataFormat next()
     {
         return _queue.poll();
     }

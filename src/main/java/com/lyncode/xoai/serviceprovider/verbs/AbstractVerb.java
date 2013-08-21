@@ -19,7 +19,8 @@
 
 package com.lyncode.xoai.serviceprovider.verbs;
 
-import org.apache.log4j.Logger;
+import com.lyncode.xoai.serviceprovider.configuration.Configuration;
+
 
 
 /**
@@ -29,18 +30,21 @@ import org.apache.log4j.Logger;
 public abstract class AbstractVerb
 {
     private String baseUrl;
-    private Logger log;
+    private Configuration configuration;
     
-    public AbstractVerb (String baseUrl, Logger log) {
+    public AbstractVerb (Configuration config, String baseUrl) {
         this.baseUrl = baseUrl;
-        this.log = log;
+        this.configuration = config;
     }
     
     protected String getBaseUrl () {
         return this.baseUrl;
     }
 
-	public Logger getLogger() {
-		return log;
-	}
+    public Configuration getConfiguration()
+    {
+        return configuration;
+    }
+    
+    
 }

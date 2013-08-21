@@ -154,7 +154,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;attribute name="maxListRecordsSize" type="{http://www.w3.org/2001/XMLSchema}int" default="100" />
  *       &lt;attribute name="maxListSetsSize" type="{http://www.w3.org/2001/XMLSchema}int" default="100" />
  *       &lt;attribute name="maxListIdentifiersSize" type="{http://www.w3.org/2001/XMLSchema}int" default="100" />
- *       &lt;attribute name="indentation" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" />
+ *       &lt;attribute name="identation" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" />
  *       &lt;attribute name="stylesheet" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -191,10 +191,10 @@ public class Configuration {
     @XmlAttribute
     protected Integer maxListIdentifiersSize;
     @XmlAttribute
-    protected Boolean indentation;
+    protected Boolean identation;
     @XmlAttribute
     protected String stylesheet;
-    
+
     /**
      * Gets the value of the contexts property.
      * 
@@ -407,11 +407,11 @@ public class Configuration {
      *     {@link Boolean }
      *     
      */
-    public boolean isIndentation() {
-        if (indentation == null) {
+    public boolean isIdentation() {
+        if (identation == null) {
             return false;
         } else {
-            return indentation;
+            return identation;
         }
     }
 
@@ -424,7 +424,7 @@ public class Configuration {
      *     
      */
     public void setIdentation(Boolean value) {
-        this.indentation = value;
+        this.identation = value;
     }
 
     /**
@@ -450,6 +450,7 @@ public class Configuration {
     public void setStylesheet(String value) {
         this.stylesheet = value;
     }
+
 
     /**
      * <p>Java class for anonymous complex type.

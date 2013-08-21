@@ -2,11 +2,6 @@ package com.lyncode.xoai.serviceprovider.exceptions;
 
 public class NoMetadataFormatsException extends HarvestException {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6585051057597202011L;
-
 	public NoMetadataFormatsException() {
 	}
 

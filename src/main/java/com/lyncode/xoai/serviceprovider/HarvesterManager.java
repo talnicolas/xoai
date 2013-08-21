@@ -19,23 +19,25 @@
 
 package com.lyncode.xoai.serviceprovider;
 
-import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
-import com.lyncode.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
-import com.lyncode.xoai.serviceprovider.exceptions.IdDoesNotExistException;
-import com.lyncode.xoai.serviceprovider.exceptions.InternalHarvestException;
-import com.lyncode.xoai.serviceprovider.oaipmh.oai_dc.OAIDCParser;
-import com.lyncode.xoai.serviceprovider.oaipmh.spec.RecordType;
-import com.lyncode.xoai.serviceprovider.oaipmh.spec.schemas.oai_dc.OAIDC;
-import com.lyncode.xoai.serviceprovider.util.ProcessingQueue;
-import com.lyncode.xoai.serviceprovider.verbs.*;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.util.Properties;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import com.lyncode.xoai.serviceprovider.configuration.Configuration;
+import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
+import com.lyncode.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
+import com.lyncode.xoai.serviceprovider.exceptions.IdDoesNotExistException;
+import com.lyncode.xoai.serviceprovider.exceptions.InternalHarvestException;
+import com.lyncode.xoai.serviceprovider.verbs.GetRecord;
+import com.lyncode.xoai.serviceprovider.verbs.Identify;
+import com.lyncode.xoai.serviceprovider.verbs.ListIdentifiers;
+import com.lyncode.xoai.serviceprovider.verbs.ListMetadataFormats;
+import com.lyncode.xoai.serviceprovider.verbs.ListRecords;
+import com.lyncode.xoai.serviceprovider.verbs.ListSets;
 
 /**
  * This class works as a wrapper to provide an API with all OAI-PMH possible requests.
@@ -51,25 +53,7 @@ public class HarvesterManager
     public static final String FROM = "general@lyncode.com";
     
     private static boolean configured = false;
-    
-    public static void main (String... args) {
-    	//BasicConfigurator.configure();
-    	HarvesterManager harvester = new HarvesterManager("http://demo.dspace.org/oai/request", log);
-
-    	ListRecords lr = harvester.listRecords("oai_dc");
-    	ProcessingQueue<RecordType> results = lr.harvest(new OAIDCParser(log));
-    	while (!results.hasFinished()) {
-    		RecordType rec = results.dequeue();
-    		if (rec != null) {
-    			OAIDC dc = (OAIDC) rec.getMetadata().getAny();
-    			for (OAIDC.Element e : dc.getElements()) 
-    				System.out.println(e.getName()+"="+e.getValue());
-    		}
-    	}
-    	System.out.println("FINISH");
-    }
-    
-    public void trustAllCertificates () {
+    private static void trustAllCertificates () {
     	if (!configured) {
 	    	// Create a trust manager that does not validate certificate chains
 	    	TrustManager[] trustAllCerts = new TrustManager[]{
@@ -99,78 +83,54 @@ public class HarvesterManager
     	}
     }
     
+    private Configuration config;
     private String baseUrl;
-    private int intervalBetweenRequests;
-    private String proxyIp = null;
-    private int proxyPort = -1;
-    private Logger logInstance;
-
-    public HarvesterManager (String baseUrl, Logger log) {
+    
+    public HarvesterManager (Configuration configure, String baseUrl) {
+        config = configure;
         this.baseUrl = baseUrl;
-        this.intervalBetweenRequests = 1000;
-        this.logInstance = log;
+        
+        if (config.isTrustAllCertificates()) {
+        	trustAllCertificates();
+        }
     }
-    public HarvesterManager (String baseUrl, int interval, Logger log) {
-        this.baseUrl = baseUrl;
-        this.intervalBetweenRequests = interval;
-        this.logInstance = log;
-    }
-    public HarvesterManager (String baseUrl, String proxyIp, int proxyPort, Logger log) {
-        this.baseUrl = baseUrl;
-        this.intervalBetweenRequests = 1000;
-        this.proxyIp = proxyIp;
-        this.proxyPort = proxyPort;
-        this.logInstance = log;
-    }
-    public HarvesterManager (String baseUrl, int interval, String proxyIp, int proxyPort, Logger log) {
-        this.baseUrl = baseUrl;
-        this.intervalBetweenRequests = interval;
-        this.proxyIp = proxyIp;
-        this.proxyPort = proxyPort;
-        this.logInstance = log;
-    }
-
-    public int getIntervalBetweenRequests () {
-        return intervalBetweenRequests;
+    
+    private Configuration getConfiguration () {
+        return config;
     }
 
     public ListRecords listRecords (String metadataPrefix) {
-        return new ListRecords(baseUrl, metadataPrefix, this.getIntervalBetweenRequests(), this.proxyIp, this.proxyPort,
-                this.logInstance);
+        return new ListRecords(getConfiguration(), baseUrl, metadataPrefix);
     }
     
-    public ListRecords listRecords (String metadataPrefix, Parameters extra) {
-        return new ListRecords(baseUrl, metadataPrefix, extra, this.getIntervalBetweenRequests(), this.proxyIp,
-                this.proxyPort, this.logInstance);
+    public ListRecords listRecords (String metadataPrefix, com.lyncode.xoai.serviceprovider.verbs.ListRecords.ExtraParameters extra) {
+        return new ListRecords(config, baseUrl, metadataPrefix, extra);
     }
 
     public ListIdentifiers listIdentifiers (String metadataPrefix) {
-        return new ListIdentifiers(baseUrl, metadataPrefix, new Parameters(), this.getIntervalBetweenRequests(),
-                this.proxyIp, this.proxyPort, this.logInstance);
+        return new ListIdentifiers(getConfiguration(), baseUrl, metadataPrefix);
     }
     
-    public ListIdentifiers listIdentifiers (String metadataPrefix, Parameters extra) {
-        return new ListIdentifiers(baseUrl, metadataPrefix, extra, this.getIntervalBetweenRequests(),
-                this.proxyIp, this.proxyPort, this.logInstance);
+    public ListIdentifiers listIdentifiers (String metadataPrefix, com.lyncode.xoai.serviceprovider.verbs.ListIdentifiers.ExtraParameters extra) {
+        return new ListIdentifiers(getConfiguration(), baseUrl, metadataPrefix, extra);
     }
     
     public ListMetadataFormats listMetadataFormats () {
-        return new ListMetadataFormats(baseUrl, this.proxyIp, this.proxyPort, this.logInstance);
+        return new ListMetadataFormats(config, baseUrl);
     }
-    public ListMetadataFormats listMetadataFormats (Parameters extra) {
-        return new ListMetadataFormats(baseUrl, extra, this.proxyIp, this.proxyPort, this.logInstance);
+    public ListMetadataFormats listMetadataFormats (com.lyncode.xoai.serviceprovider.verbs.ListMetadataFormats.ExtraParameters extra) {
+        return new ListMetadataFormats(config, baseUrl, extra);
     }
     
     public ListSets listSets () {
-        return new ListSets(baseUrl, this.getIntervalBetweenRequests(), this.proxyIp, this.proxyPort, this.logInstance);
+        return new ListSets(config, baseUrl);
     }
     
-    public GetRecord getRecord (String identifier, String metadataPrefix) throws InternalHarvestException,
-            BadArgumentException, CannotDisseminateFormatException, IdDoesNotExistException {
-        return new GetRecord(baseUrl, identifier, metadataPrefix, this.proxyIp, this.proxyPort, this.logInstance);
+    public GetRecord getRecord (String identifier, String metadataPrefix) throws InternalHarvestException, BadArgumentException, CannotDisseminateFormatException, IdDoesNotExistException {
+        return new GetRecord(config, baseUrl, identifier, metadataPrefix);
     }
     
     public Identify identify () throws InternalHarvestException, BadArgumentException {
-        return new Identify(baseUrl, this.proxyIp, this.proxyPort, this.logInstance);
+        return new Identify(config, baseUrl);
     }
 }

@@ -19,12 +19,16 @@
 
 package com.lyncode.xoai.serviceprovider.verbs;
 
-import org.apache.log4j.Logger;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.lyncode.xoai.serviceprovider.configuration.Configuration;
 import com.lyncode.xoai.serviceprovider.iterators.RecordIterator;
-import com.lyncode.xoai.serviceprovider.oaipmh.GenericParser;
-import com.lyncode.xoai.serviceprovider.oaipmh.spec.RecordType;
-import com.lyncode.xoai.serviceprovider.util.ProcessingQueue;
+import com.lyncode.xoai.serviceprovider.util.DateUtils;
+import com.lyncode.xoai.serviceprovider.util.URLEncoder;
 
 
 /**
@@ -35,42 +39,75 @@ public class ListRecords extends AbstractVerb
 {
 	
     private String metadataPrefix;
-    private Parameters extra;
-    private int interval;
-    private String proxyIp;
-    private int proxyPort;
+    private ExtraParameters extra;
     
-    public ListRecords(String baseUrl, String metadataPrefix, int interval, String proxyIp, int proxyPort,
-                       Logger log)
+    public ListRecords(Configuration config, String baseUrl, String metadataPrefix)
     {
-        super(baseUrl, log);
+        super(config, baseUrl);
         this.metadataPrefix = metadataPrefix;
         this.extra = null;
-        this.interval = interval;
-        this.proxyIp = proxyIp;
-        this.proxyPort = proxyPort;
     }
     
 
-    public ListRecords(String baseUrl, String metadataPrefix, Parameters extra, int interval, String proxyIp,
-                       int proxyPort, Logger log)
+    public ListRecords(Configuration config, String baseUrl, String metadataPrefix, ExtraParameters extra)
     {
-        super(baseUrl, log);
+        super(config, baseUrl);
         this.metadataPrefix = metadataPrefix;
         this.extra = extra;
-        this.interval = interval;
-        this.proxyIp = proxyIp;
-        this.proxyPort = proxyPort;
     }
 
-    public ProcessingQueue<RecordType> harvest(GenericParser metadata)
+    public RecordIterator iterator()
     {
-        return (new RecordIterator(this.interval, super.getBaseUrl(), metadataPrefix, extra, this.proxyIp,
-                this.proxyPort, getLogger(), metadata)).harvest();
+        return new RecordIterator(super.getConfiguration(), super.getBaseUrl(), metadataPrefix, extra);
     }
-    public ProcessingQueue<RecordType> harvest(GenericParser metadata, GenericParser about)
-    {
-        return (new RecordIterator(this.interval, super.getBaseUrl(), metadataPrefix, extra, this.proxyIp,
-                this.proxyPort, getLogger(), metadata, about)).harvest();
+    
+    public class ExtraParameters {
+        private String set;
+        private Date from;
+        private Date until;
+        
+        public ExtraParameters()
+        {
+            super();
+        }
+
+        public String getSet()
+        {
+            return set;
+        }
+
+        public void setSet(String set)
+        {
+            this.set = set;
+        }
+
+        public Date getFrom()
+        {
+            return from;
+        }
+
+        public void setFrom(Date from)
+        {
+            this.from = from;
+        }
+
+        public Date getUntil()
+        {
+            return until;
+        }
+
+        public void setUntil(Date until)
+        {
+            this.until = until;
+        }
+        
+        public String toUrl () {
+            List<String> string = new ArrayList<String>();
+            if (set != null) string.add("set="+URLEncoder.encode(set));
+            if (from != null) string.add("from="+URLEncoder.encode(DateUtils.fromDate(from)));
+            if (until != null) string.add("until="+URLEncoder.encode(DateUtils.fromDate(until)));
+            return StringUtils.join(string, URLEncoder.SEPARATOR);
+        }
     }
+
 }

@@ -19,11 +19,16 @@
 
 package com.lyncode.xoai.serviceprovider.verbs;
 
-import org.apache.log4j.Logger;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.lyncode.xoai.serviceprovider.configuration.Configuration;
 import com.lyncode.xoai.serviceprovider.iterators.IdentifierIterator;
-import com.lyncode.xoai.serviceprovider.oaipmh.spec.HeaderType;
-import com.lyncode.xoai.serviceprovider.util.ProcessingQueue;
+import com.lyncode.xoai.serviceprovider.util.DateUtils;
+import com.lyncode.xoai.serviceprovider.util.URLEncoder;
 
 
 /**
@@ -33,26 +38,75 @@ import com.lyncode.xoai.serviceprovider.util.ProcessingQueue;
 public class ListIdentifiers extends AbstractVerb
 {
     private String metadataPrefix;
-    private int interval;
-    private Parameters extra;
-    private String proxyIp;
-    private int proxyPort;
+    private ExtraParameters extra;
     
-    public ListIdentifiers(String baseUrl, String metadataPrefix, Parameters extra, int interval,
-                           String proxyIp, int proxyPort, Logger log)
+    public ListIdentifiers(Configuration config, String baseUrl, String metadataPrefix)
     {
-        super(baseUrl, log);
+        super(config, baseUrl);
         this.metadataPrefix = metadataPrefix;
-        this.interval = interval;
-        this.extra = extra;
-        this.proxyIp = proxyIp;
-        this.proxyPort = proxyPort;
+        this.extra = null;
     }
+    
 
-
-	public ProcessingQueue<HeaderType> harvest()
+    public ListIdentifiers(Configuration config, String baseUrl, String metadataPrefix, ExtraParameters extra)
     {
-        return (new IdentifierIterator(this.interval, super.getBaseUrl(), metadataPrefix, this.extra, this.proxyIp,
-                this.proxyPort, getLogger())).harvest();
+        super(config, baseUrl);
+        this.metadataPrefix = metadataPrefix;
+        this.extra = extra;
     }
+
+    public IdentifierIterator iterator()
+    {
+        return new IdentifierIterator(super.getConfiguration(), super.getBaseUrl(), metadataPrefix, extra);
+    }
+    
+    public class ExtraParameters {
+        private String set;
+        private Date from;
+        private Date until;
+        
+        public ExtraParameters()
+        {
+            super();
+        }
+
+        public String getSet()
+        {
+            return set;
+        }
+
+        public void setSet(String set)
+        {
+            this.set = set;
+        }
+
+        public Date getFrom()
+        {
+            return from;
+        }
+
+        public void setFrom(Date from)
+        {
+            this.from = from;
+        }
+
+        public Date getUntil()
+        {
+            return until;
+        }
+
+        public void setUntil(Date until)
+        {
+            this.until = until;
+        }
+        
+        public String toUrl () {
+            List<String> string = new ArrayList<String>();
+            if (set != null) string.add("set="+URLEncoder.encode(set));
+            if (from != null) string.add("from="+URLEncoder.encode(DateUtils.fromDate(from)));
+            if (until != null) string.add("until="+URLEncoder.encode(DateUtils.fromDate(until)));
+            return StringUtils.join(string, URLEncoder.SEPARATOR);
+        }
+    }
+
 }
