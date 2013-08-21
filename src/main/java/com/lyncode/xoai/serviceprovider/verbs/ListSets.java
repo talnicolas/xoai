@@ -29,15 +29,19 @@ import com.lyncode.xoai.serviceprovider.iterators.SetIterator;
 
 public class ListSets extends AbstractVerb
 {
+    private String proxyIp;
+    private int proxyPort;
 
-    public ListSets(Configuration config, String baseUrl)
+    public ListSets(Configuration config, String baseUrl, String proxyIp, int proxyPort)
     {
         super(config, baseUrl);
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
     }
 
     public SetIterator iterator()
     {
-        return new SetIterator(super.getConfiguration(), super.getBaseUrl());
+        return new SetIterator(super.getConfiguration(), super.getBaseUrl(), this.proxyIp, this.proxyPort);
     }
 
 }

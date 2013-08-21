@@ -19,14 +19,13 @@
 
 package com.lyncode.xoai.serviceprovider.verbs;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.lyncode.xoai.serviceprovider.configuration.Configuration;
 import com.lyncode.xoai.serviceprovider.iterators.MetadataFormatIterator;
 import com.lyncode.xoai.serviceprovider.util.URLEncoder;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -35,22 +34,30 @@ import com.lyncode.xoai.serviceprovider.util.URLEncoder;
  */
 public class ListMetadataFormats extends AbstractVerb
 {
+    private String proxyIp;
+    private int proxyPort;
     private ExtraParameters parameters;
 
-    public ListMetadataFormats(Configuration config, String baseUrl)
+    public ListMetadataFormats(Configuration config, String baseUrl, String proxyIp, int proxyPort)
     {
         super(config, baseUrl);
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
         parameters = null;
     }
-    public ListMetadataFormats(Configuration config, String baseUrl, ExtraParameters extra)
+    public ListMetadataFormats(Configuration config, String baseUrl, String proxyIp, int proxyPort,
+                               ExtraParameters extra)
     {
         super(config, baseUrl);
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
         parameters = extra;
     }
 
     public MetadataFormatIterator iterator()
     {
-        return new MetadataFormatIterator(super.getConfiguration(), super.getBaseUrl(), parameters);
+        return new MetadataFormatIterator(super.getConfiguration(), super.getBaseUrl(), this.proxyIp, this.proxyPort,
+                parameters);
     }
 
 

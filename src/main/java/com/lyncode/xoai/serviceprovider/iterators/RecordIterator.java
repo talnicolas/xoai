@@ -19,18 +19,20 @@
 
 package com.lyncode.xoai.serviceprovider.iterators;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.LinkedList;
-import java.util.Queue;
-
-import javax.xml.parsers.ParserConfigurationException;
-
+import com.lyncode.xoai.serviceprovider.HarvesterManager;
+import com.lyncode.xoai.serviceprovider.configuration.Configuration;
+import com.lyncode.xoai.serviceprovider.data.Record;
+import com.lyncode.xoai.serviceprovider.exceptions.*;
+import com.lyncode.xoai.serviceprovider.util.URLEncoder;
+import com.lyncode.xoai.serviceprovider.util.XMLUtils;
+import com.lyncode.xoai.serviceprovider.verbs.ListRecords.ExtraParameters;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -38,17 +40,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.lyncode.xoai.serviceprovider.HarvesterManager;
-import com.lyncode.xoai.serviceprovider.configuration.Configuration;
-import com.lyncode.xoai.serviceprovider.data.Record;
-import com.lyncode.xoai.serviceprovider.exceptions.BadResumptionTokenException;
-import com.lyncode.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
-import com.lyncode.xoai.serviceprovider.exceptions.InternalHarvestException;
-import com.lyncode.xoai.serviceprovider.exceptions.NoRecordsMatchException;
-import com.lyncode.xoai.serviceprovider.exceptions.NoSetHierarchyException;
-import com.lyncode.xoai.serviceprovider.util.URLEncoder;
-import com.lyncode.xoai.serviceprovider.util.XMLUtils;
-import com.lyncode.xoai.serviceprovider.verbs.ListRecords.ExtraParameters;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.Queue;
 
 
 /**
@@ -62,15 +58,19 @@ public class RecordIterator
     private Configuration config;
     private String baseUrl;
     private String metadataPrefix;
+    private String proxyIp;
+    private int proxyPort;
     private ExtraParameters extra;
 
     public RecordIterator(Configuration configuration, String baseUrl, String metadataPrefix,
-            ExtraParameters extra)
+                          String proxyIp, int proxyPort, ExtraParameters extra)
     {
         super();
         this.config = configuration;
         this.baseUrl = baseUrl;
         this.metadataPrefix = metadataPrefix;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
         this.extra = extra;
     }
 
@@ -109,7 +109,13 @@ public class RecordIterator
         httpget.addHeader("From", HarvesterManager.FROM);
         
         HttpResponse response = null;
-        
+
+        if(this.proxyIp != null && this.proxyPort > -1)
+        {
+            HttpHost proxy = new HttpHost(this.proxyIp, this.proxyPort);
+            httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        }
+
         try
         {
             response = httpclient.execute(httpget);

@@ -19,16 +19,15 @@
 
 package com.lyncode.xoai.serviceprovider.verbs;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.lyncode.xoai.serviceprovider.configuration.Configuration;
 import com.lyncode.xoai.serviceprovider.iterators.RecordIterator;
 import com.lyncode.xoai.serviceprovider.util.DateUtils;
 import com.lyncode.xoai.serviceprovider.util.URLEncoder;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -39,26 +38,34 @@ public class ListRecords extends AbstractVerb
 {
 	
     private String metadataPrefix;
+    private String proxyIp;
+    private int proxyPort;
     private ExtraParameters extra;
     
-    public ListRecords(Configuration config, String baseUrl, String metadataPrefix)
+    public ListRecords(Configuration config, String baseUrl, String metadataPrefix, String proxyIp, int proxyPort)
     {
         super(config, baseUrl);
         this.metadataPrefix = metadataPrefix;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
         this.extra = null;
     }
     
 
-    public ListRecords(Configuration config, String baseUrl, String metadataPrefix, ExtraParameters extra)
+    public ListRecords(Configuration config, String baseUrl, String metadataPrefix, String proxyIp, int proxyPort,
+                       ExtraParameters extra)
     {
         super(config, baseUrl);
         this.metadataPrefix = metadataPrefix;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
         this.extra = extra;
     }
 
     public RecordIterator iterator()
     {
-        return new RecordIterator(super.getConfiguration(), super.getBaseUrl(), metadataPrefix, extra);
+        return new RecordIterator(super.getConfiguration(), super.getBaseUrl(), metadataPrefix, this.proxyIp,
+                this.proxyPort, extra);
     }
     
     public class ExtraParameters {

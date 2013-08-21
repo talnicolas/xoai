@@ -3,7 +3,9 @@
 *target
 *.classpath
 *.settings
-
+*.idea
+*.iml
+*out
 # Package Files #
 *.jar
 *.war

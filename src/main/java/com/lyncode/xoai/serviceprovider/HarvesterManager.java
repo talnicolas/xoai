@@ -19,25 +19,19 @@
 
 package com.lyncode.xoai.serviceprovider;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import com.lyncode.xoai.serviceprovider.configuration.Configuration;
 import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
 import com.lyncode.xoai.serviceprovider.exceptions.CannotDisseminateFormatException;
 import com.lyncode.xoai.serviceprovider.exceptions.IdDoesNotExistException;
 import com.lyncode.xoai.serviceprovider.exceptions.InternalHarvestException;
-import com.lyncode.xoai.serviceprovider.verbs.GetRecord;
-import com.lyncode.xoai.serviceprovider.verbs.Identify;
-import com.lyncode.xoai.serviceprovider.verbs.ListIdentifiers;
-import com.lyncode.xoai.serviceprovider.verbs.ListMetadataFormats;
-import com.lyncode.xoai.serviceprovider.verbs.ListRecords;
-import com.lyncode.xoai.serviceprovider.verbs.ListSets;
+import com.lyncode.xoai.serviceprovider.verbs.*;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * This class works as a wrapper to provide an API with all OAI-PMH possible requests.
@@ -85,11 +79,24 @@ public class HarvesterManager
     
     private Configuration config;
     private String baseUrl;
-    
+    private String proxyIp = null;
+    private int proxyPort = -1;
+
     public HarvesterManager (Configuration configure, String baseUrl) {
         config = configure;
         this.baseUrl = baseUrl;
         
+        if (config.isTrustAllCertificates()) {
+        	trustAllCertificates();
+        }
+    }
+
+    public HarvesterManager (Configuration configure, String baseUrl, String proxyIp, int proxyPort) {
+        config = configure;
+        this.baseUrl = baseUrl;
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
+
         if (config.isTrustAllCertificates()) {
         	trustAllCertificates();
         }
@@ -100,37 +107,37 @@ public class HarvesterManager
     }
 
     public ListRecords listRecords (String metadataPrefix) {
-        return new ListRecords(getConfiguration(), baseUrl, metadataPrefix);
+        return new ListRecords(getConfiguration(), baseUrl, metadataPrefix, this.proxyIp, this.proxyPort);
     }
     
     public ListRecords listRecords (String metadataPrefix, com.lyncode.xoai.serviceprovider.verbs.ListRecords.ExtraParameters extra) {
-        return new ListRecords(config, baseUrl, metadataPrefix, extra);
+        return new ListRecords(config, baseUrl, metadataPrefix, this.proxyIp, this.proxyPort, extra);
     }
 
     public ListIdentifiers listIdentifiers (String metadataPrefix) {
-        return new ListIdentifiers(getConfiguration(), baseUrl, metadataPrefix);
+        return new ListIdentifiers(getConfiguration(), baseUrl, metadataPrefix, this.proxyIp, this.proxyPort);
     }
     
     public ListIdentifiers listIdentifiers (String metadataPrefix, com.lyncode.xoai.serviceprovider.verbs.ListIdentifiers.ExtraParameters extra) {
-        return new ListIdentifiers(getConfiguration(), baseUrl, metadataPrefix, extra);
+        return new ListIdentifiers(getConfiguration(), baseUrl, metadataPrefix, this.proxyIp, this.proxyPort, extra);
     }
     
     public ListMetadataFormats listMetadataFormats () {
-        return new ListMetadataFormats(config, baseUrl);
+        return new ListMetadataFormats(config, baseUrl, this.proxyIp, this.proxyPort);
     }
     public ListMetadataFormats listMetadataFormats (com.lyncode.xoai.serviceprovider.verbs.ListMetadataFormats.ExtraParameters extra) {
-        return new ListMetadataFormats(config, baseUrl, extra);
+        return new ListMetadataFormats(config, baseUrl, this.proxyIp, this.proxyPort, extra);
     }
     
     public ListSets listSets () {
-        return new ListSets(config, baseUrl);
+        return new ListSets(config, baseUrl, this.proxyIp, this.proxyPort);
     }
     
     public GetRecord getRecord (String identifier, String metadataPrefix) throws InternalHarvestException, BadArgumentException, CannotDisseminateFormatException, IdDoesNotExistException {
-        return new GetRecord(config, baseUrl, identifier, metadataPrefix);
+        return new GetRecord(config, baseUrl, identifier, metadataPrefix, this.proxyIp, this.proxyPort);
     }
     
     public Identify identify () throws InternalHarvestException, BadArgumentException {
-        return new Identify(config, baseUrl);
+        return new Identify(config, baseUrl, this.proxyIp, this.proxyPort);
     }
 }

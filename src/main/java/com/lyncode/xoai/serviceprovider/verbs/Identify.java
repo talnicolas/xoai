@@ -19,17 +19,18 @@
 
 package com.lyncode.xoai.serviceprovider.verbs;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-
-import javax.xml.parsers.ParserConfigurationException;
-
+import com.lyncode.xoai.serviceprovider.HarvesterManager;
+import com.lyncode.xoai.serviceprovider.configuration.Configuration;
+import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
+import com.lyncode.xoai.serviceprovider.exceptions.InternalHarvestException;
+import com.lyncode.xoai.serviceprovider.util.XMLUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -37,11 +38,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.lyncode.xoai.serviceprovider.HarvesterManager;
-import com.lyncode.xoai.serviceprovider.configuration.Configuration;
-import com.lyncode.xoai.serviceprovider.exceptions.BadArgumentException;
-import com.lyncode.xoai.serviceprovider.exceptions.InternalHarvestException;
-import com.lyncode.xoai.serviceprovider.util.XMLUtils;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 
 
 /**
@@ -67,10 +67,15 @@ public class Identify extends AbstractVerb
     private ArrayList<String> adminEmails;
     
     private ArrayList<String> compressions;
+    private String proxyIp;
+    private int proxyPort;
     
-    public Identify(Configuration config, String baseUrl) throws InternalHarvestException, BadArgumentException
+    public Identify(Configuration config, String baseUrl, String proxyIp, int proxyPort)
+            throws InternalHarvestException, BadArgumentException
     {
         super(config, baseUrl);
+        this.proxyIp = proxyIp;
+        this.proxyPort = proxyPort;
         harvest();
     }
     
@@ -88,7 +93,13 @@ public class Identify extends AbstractVerb
         httpget.addHeader("From", HarvesterManager.FROM);
         
         HttpResponse response = null;
-        
+
+        if(this.proxyIp != null && this.proxyPort > -1)
+        {
+            HttpHost proxy = new HttpHost(this.proxyIp, this.proxyPort);
+            httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        }
+
         try
         {
             response = httpclient.execute(httpget);
